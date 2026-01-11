@@ -1,10 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
-export default function Login({ setToken, setRole }) {
+export default function Login({ setToken }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setLocalRole] = useState("developer");
+  const [role, setRole] = useState("developer");
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
@@ -17,10 +17,13 @@ export default function Login({ setToken, setRole }) {
         : "http://localhost:3000/api/developer/login";
 
     try {
-      const res = await axios.post(endpoint, { email, password });
+      const res = await api.post(
+        role === "admin" ? "/admin/login" : "/developer/login",
+        { email, password }
+      );
 
-      setToken(res.data.token);
-      setRole(role); // source of truth for now
+      // 🔑 Pass BOTH token + role
+      setToken(res.data.token, role);
     } catch {
       setError("Invalid credentials");
     }
@@ -31,7 +34,7 @@ export default function Login({ setToken, setRole }) {
       <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
-        <select value={role} onChange={(e) => setLocalRole(e.target.value)}>
+        <select value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="developer">Developer</option>
           <option value="admin">Admin</option>
         </select>
