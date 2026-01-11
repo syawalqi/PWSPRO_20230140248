@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import Login from "./Login";
-import AdminDashboard from "./Dashboard";
-import DeveloperDashboard from "./DeveloperDashboard";
+import Login from "./pages/Login";
+import AdminDashboard from "./pages/AdminDashboard";
+import DeveloperDashboard from "./pages/DeveloperDashboard";
+
 
 function App() {
   const [token, setToken] = useState(null);
