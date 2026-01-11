@@ -29,7 +29,7 @@ export const loginDeveloper = async (req, res) => {
     {
       userId: user.id,
       email: user.email,
-      role: "developer"
+      role: user.role 
     },
     process.env.JWT_SECRET,
     { expiresIn: "2h" }

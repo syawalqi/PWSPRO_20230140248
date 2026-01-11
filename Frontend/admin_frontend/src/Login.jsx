@@ -7,7 +7,7 @@ export default function Login({ setToken, setRole }) {
   const [role, setLocalRole] = useState("developer");
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+    const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -19,11 +19,12 @@ export default function Login({ setToken, setRole }) {
     try {
       const res = await axios.post(endpoint, { email, password });
 
+      // 🔑 SOURCE OF TRUTH = BACKEND RESPONSE
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", role);
+      localStorage.setItem("role", res.data.role);
 
       setToken(res.data.token);
-      setRole(role);
+      setRole(res.data.role);
     } catch {
       setError("Invalid credentials");
     }
