@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 
-export default function DeveloperDashboard({ onLogout }) {
+export default function DeveloperDashboard({ onLogout, onDocs, onPlayground }) {
+
   const [apiKey, setApiKey] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchApiKey = async () => {
+    const fetchApiKey = async () => {
     try {
       const res = await api.get("/developer/apikey");
       setApiKey(res.data.apiKey);
+
+      if (res.data.apiKey) {
+        localStorage.setItem("apiKey", res.data.apiKey);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const generateKey = async () => {
+
+    const generateKey = async () => {
     const res = await api.post("/developer/apikey");
     setApiKey(res.data.apiKey);
+    localStorage.setItem("apiKey", res.data.apiKey);
   };
+
 
   useEffect(() => {
     fetchApiKey();
@@ -49,6 +57,9 @@ export default function DeveloperDashboard({ onLogout }) {
         )}
       </section>
 
+      <button onClick={onDocs}>View API Documentation</button>
+      <button onClick={onPlayground}>Open API Playground</button>
+
       <section style={styles.card}>
         <h3>Example Request</h3>
         <pre style={styles.pre}>
@@ -60,6 +71,9 @@ x-api-key: YOUR_API_KEY`}
     </div>
   );
 }
+
+
+
 
 const styles = {
   container: {

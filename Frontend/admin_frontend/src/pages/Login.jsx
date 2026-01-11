@@ -6,15 +6,12 @@ export default function Login({ setToken }) {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("developer");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-
-    const endpoint =
-      role === "admin"
-        ? "http://localhost:3000/api/admin/login"
-        : "http://localhost:3000/api/developer/login";
+    setLoading(true);
 
     try {
       const res = await api.post(
@@ -22,46 +19,114 @@ export default function Login({ setToken }) {
         { email, password }
       );
 
-      // 🔑 Pass BOTH token + role
       setToken(res.data.token, role);
     } catch {
-      setError("Invalid credentials");
+      setError("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login</h2>
+    <div style={styles.page}>
+      <form style={styles.card} onSubmit={handleLogin}>
+        <h2 style={styles.title}>Open API Portal</h2>
+        <p style={styles.subtitle}>Sign in to continue</p>
 
-      <form onSubmit={handleLogin}>
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
+        <label style={styles.label}>Login as</label>
+        <select
+          style={styles.input}
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+        >
           <option value="developer">Developer</option>
           <option value="admin">Admin</option>
         </select>
 
-        <br /><br />
-
+        <label style={styles.label}>Email</label>
         <input
-          placeholder="Email"
+          style={styles.input}
+          type="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
-        <br /><br />
-
+        <label style={styles.label}>Password</label>
         <input
+          style={styles.input}
           type="password"
-          placeholder="Password"
+          placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
-        <br /><br />
+        <button style={styles.button} type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Login"}
+        </button>
 
-        <button type="submit">Login</button>
+        {error && <p style={styles.error}>{error}</p>}
       </form>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#f5f6fa",
+    fontFamily: "Arial, sans-serif",
+  },
+  card: {
+    width: 360,
+    padding: 30,
+    background: "#fff",
+    borderRadius: 8,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  },
+  title: {
+    marginBottom: 5,
+    textAlign: "center",
+  },
+  subtitle: {
+    marginBottom: 25,
+    textAlign: "center",
+    color: "#666",
+    fontSize: 14,
+  },
+  label: {
+    display: "block",
+    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 4,
+    border: "1px solid #ccc",
+    fontSize: 14,
+  },
+  button: {
+    width: "100%",
+    padding: 12,
+    background: "#2c3e50",
+    color: "#fff",
+    border: "none",
+    borderRadius: 4,
+    cursor: "pointer",
+    fontSize: 15,
+  },
+  error: {
+    marginTop: 15,
+    color: "#e74c3c",
+    textAlign: "center",
+    fontSize: 14,
+  },
+};

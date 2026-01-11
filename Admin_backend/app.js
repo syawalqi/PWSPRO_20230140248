@@ -11,6 +11,7 @@ import apikeyRoute from "./routes/apikey.route.js";
 import animalRoute from "./routes/animal.route.js";
 import devApiKeyRoute from "./routes/dev.apikey.route.js";
 import developerRoute from "./routes/developer.route.js";
+import adminManageRoute from "./routes/admin.manage.route.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use("/api", apikeyRoute);
 app.use("/api", animalRoute);
 app.use("/api", developerRoute);
 app.use("/api", devApiKeyRoute);
+app.use("/api", adminManageRoute);
 
 app.use("/", healthRoute);
 

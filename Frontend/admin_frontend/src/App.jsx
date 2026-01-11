@@ -2,11 +2,19 @@ import { useState, useEffect } from "react";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import DeveloperDashboard from "./pages/DeveloperDashboard";
+import ApiDocs from "./pages/ApiDocs";
+import DeveloperApiPlayground from "./pages/DeveloperApiPlayground";
+
 
 export default function App() {
+  const [developerView, setDeveloperView] = useState("dashboard");
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
   const [ready, setReady] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
+  const [showPlayground, setShowPlayground] = useState(false);
+
+
 
   // 🔐 Restore session ONCE
   useEffect(() => {
@@ -51,8 +59,29 @@ export default function App() {
   }
 
   if (role === "developer") {
-    return <DeveloperDashboard onLogout={logout} />;
+  if (developerView === "docs") {
+    return <ApiDocs onBack={() => setDeveloperView("dashboard")} />;
   }
+
+  if (developerView === "playground") {
+    return (
+      <DeveloperApiPlayground
+        apiKey={localStorage.getItem("apiKey")}
+        onBack={() => setDeveloperView("dashboard")}
+      />
+    );
+  }
+
+  // default dashboard
+  return (
+    <DeveloperDashboard
+      onLogout={logout}
+      onDocs={() => setDeveloperView("docs")}
+      onPlayground={() => setDeveloperView("playground")}
+    />
+  );
+}
+
 
   return <Login setToken={handleLogin} />;
 }
