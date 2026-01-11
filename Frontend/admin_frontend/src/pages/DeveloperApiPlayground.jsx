@@ -65,11 +65,10 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
       {response && (
         <>
           <h3>Response</h3>
-          <pre style={styles.output}>
-            {JSON.stringify(response, null, 2)}
-          </pre>
+          <ResponseRenderer response={response} />
         </>
       )}
+
 
       {error && (
         <>
@@ -80,6 +79,53 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
     </div>
   );
 }
+
+function ResponseRenderer({ response }) {
+//// test gambar
+  if (response?.data && Array.isArray(response.data)) {
+    return (
+      <div style={gridStyles.grid}>
+        {response.data.map((item, index) => (
+          <div key={index} style={gridStyles.card}>
+            {item.image && (
+              <img
+                src={item.image}
+                alt={item.breed_name}
+                style={gridStyles.image}
+              />
+            )}
+
+            <h4>{item.breed_name}</h4>
+            <p><b>Species:</b> {item.species}</p>
+            <p><b>Size:</b> {item.size_category}</p>
+
+            {item.lifespan && (
+              <p>
+                <b>Lifespan:</b> {item.lifespan.min}–{item.lifespan.max} yrs
+              </p>
+            )}
+
+            {item.temperament?.length > 0 && (
+              <p style={gridStyles.tags}>
+                {item.temperament.map((t, i) => (
+                  <span key={i} style={gridStyles.tag}>{t}</span>
+                ))}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+/// test json
+  return (
+    <pre style={styles.output}>
+      {JSON.stringify(response, null, 2)}
+    </pre>
+  );
+}
+
 
 const styles = {
   container: {
@@ -108,5 +154,37 @@ const styles = {
   error: {
     background: "#ffe6e6",
     padding: 15,
+  },
+};
+
+const gridStyles = {
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+    gap: 16,
+  },
+  card: {
+    border: "1px solid #ddd",
+    borderRadius: 6,
+    padding: 12,
+    background: "#fff",
+  },
+  image: {
+    width: "100%",
+    height: 140,
+    objectFit: "cover",
+    borderRadius: 4,
+    marginBottom: 10,
+  },
+  tags: {
+    marginTop: 8,
+  },
+  tag: {
+    display: "inline-block",
+    background: "#ecf0f1",
+    padding: "2px 6px",
+    margin: "2px",
+    borderRadius: 4,
+    fontSize: 12,
   },
 };
