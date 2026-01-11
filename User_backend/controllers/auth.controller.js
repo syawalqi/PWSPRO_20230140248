@@ -1,0 +1,57 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import pool from "../config/db.js";
+
+/**
+ * Register user (frontend user)
+ */
+export const register = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "INSERT INTO users (email, password_hash, status) VALUES (?, ?, 'active')",
+      [email, hash]
+    );
+
+    res.status(201).json({ message: "User registered" });
+  } catch (err) {
+    res.status(400).json({ message: "Email already exists" });
+  }
+};
+
+/**
+ * Login user
+ */
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  const [rows] = await pool.query(
+    "SELECT * FROM users WHERE email = ? AND status = 'active'",
+    [email]
+  );
+
+  if (rows.length === 0) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  const user = rows[0];
+  const valid = await bcrypt.compare(password, user.password_hash);
+
+  if (!valid) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "2h" }
+  );
+
+  res.json({ token });
+};
