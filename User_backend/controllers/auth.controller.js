@@ -13,12 +13,18 @@ export const register = async (req, res) => {
 
     await pool.query(
       "INSERT INTO users (email, password_hash, status) VALUES (?, ?, 'active')",
-      [email, hash]
+      [email.trim().toLowerCase(), hash]
     );
 
     res.status(201).json({ message: "User registered" });
   } catch (err) {
-    res.status(400).json({ message: "Email already exists" });
+    console.error("REGISTER ERROR:", err.code, err.message);
+
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    res.status(500).json({ message: "Registration failed" });
   }
 };
 
