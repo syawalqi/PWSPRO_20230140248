@@ -16,18 +16,20 @@ export default function Login({ setToken, setRole }) {
         ? "http://localhost:3000/api/admin/login"
         : "http://localhost:3000/api/developer/login";
 
-    try {
-      const res = await axios.post(endpoint, { email, password });
+          try {
+        const res = await axios.post(endpoint, { email, password });
 
-      // 🔑 SOURCE OF TRUTH = BACKEND RESPONSE
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
+        const finalRole =
+          role === "admin" ? "admin" : res.data.role;
 
-      setToken(res.data.token);
-      setRole(res.data.role);
-    } catch {
-      setError("Invalid credentials");
-    }
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", finalRole);
+
+        setToken(res.data.token);
+        setRole(finalRole);
+      } catch {
+        setError("Invalid credentials");
+      }
   };
 
   return (

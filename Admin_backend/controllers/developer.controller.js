@@ -35,5 +35,5 @@ export const loginDeveloper = async (req, res) => {
     { expiresIn: "2h" }
   );
 
-  res.json({ token });
+  res.json({ token, role: user.role });
 };

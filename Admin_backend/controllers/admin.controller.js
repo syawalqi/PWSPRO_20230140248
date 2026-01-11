@@ -50,5 +50,5 @@ export const loginAdmin = async (req, res) => {
     { expiresIn: "1h" }
   );
 
-  res.json({ token });
+  res.json({ token, role: admin.role });
 };

@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 
 export default function Dashboard({ onLogout }) {
-  const token = localStorage.getItem("admin_token");
+  const token = localStorage.getItem("token");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
