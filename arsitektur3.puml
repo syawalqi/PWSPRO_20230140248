@@ -1,0 +1,33 @@
+@startuml
+title Veterinary Open API Platform - Technology Architecture
+
+skinparam componentStyle rectangle
+
+database "MySQL Database" as DB {
+  [admins]
+  [users]
+  [api_keys]
+  [animals]
+}
+
+component "Backend API Server\n(Node.js + Express)" as Backend {
+  [JWT Authentication]
+  [API Key Validation]
+  [CRUD Operations]
+  [Role Management\n(Admin / Developer)]
+  [Data Processing]
+}
+
+component "Frontend Platform\n(React)" as Frontend {
+  [Landing Page]
+  [Login Page]
+  [Admin Dashboard]
+  [Developer Dashboard]
+  [API Documentation]
+  [API Playground]
+}
+
+DB <--> Backend : SQL Queries
+Backend <--> Frontend : REST API (JSON)
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+title Veterinary Open API Platform - System Architecture
+
+actor Admin
+actor Developer
+actor "API Consumer\n(Clinic / App)" as Consumer
+
+cloud "Web Interface / API Gateway" as Interface {
+  component "Admin Dashboard\n(React)" as AdminUI
+  component "Developer Dashboard\n(React)" as DevUI
+  component "Public API\n(/animals/*)" as PublicAPI
+}
+
+component "Backend Server\n(Node.js + Express)" as Backend
+database "Database\n(MySQL)" as DB
+
+' ===== Admin Flow =====
+Admin --> AdminUI : Login / CRUD Developer\nManage API Keys
+AdminUI --> Backend : REST API (JWT Auth)
+Backend --> DB : CRUD Admin, Users, API Keys
+DB --> Backend
+Backend --> AdminUI : JSON Response
+
+' ===== Developer Flow =====
+Developer --> DevUI : Login / Generate API Key\nAPI Docs / Playground
+DevUI --> Backend : REST API (JWT Auth)
+Backend --> DB : Read Users / API Keys
+DB --> Backend
+Backend --> DevUI : JSON Response
+
+' ===== Public API Flow =====
+Consumer --> PublicAPI : HTTP Request\nx-api-key
+PublicAPI --> Backend : Validate API Key\nFetch Vet Data
+Backend --> DB : Read Veterinary Data
+DB --> Backend
+Backend --> PublicAPI : JSON Response
+PublicAPI --> Consumer : API Response
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+title Veterinary Open API - Role & Endpoint Access
+
+actor "API Consumer\n(Clinic / App)" as Consumer
+actor Developer
+actor Admin
+
+rectangle "Veterinary Open API" {
+
+  Consumer --> (GET /api/animals/dogs)
+  Consumer --> (GET /api/animals/cats)
+
+  Developer --> (GET /api/animals/dogs)
+  Developer --> (GET /api/animals/cats)
+  Developer --> (GET /api/docs)
+  Developer --> (API Playground)
+  Developer --> (Generate API Key)
+
+  Admin --> (GET /api/admin/developers)
+  Admin --> (POST /api/users)
+  Admin --> (DELETE /api/admin/developers/{id})
+
+  Admin --> (POST /api/admin/apikey/{userId}/regenerate)
+  Admin --> (DELETE /api/admin/apikey/{userId})
+
+  Admin --> (Admin CRUD Management)
+}
+
+@enduml
