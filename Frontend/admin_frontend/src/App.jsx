@@ -10,11 +10,16 @@ function App() {
     if (saved) setToken(saved);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    setToken(null);
+  };
+
   if (!token) {
     return <Login setToken={setToken} />;
   }
 
-  return <Dashboard />;
+  return <Dashboard onLogout={handleLogout} />;
 }
 
 export default App;

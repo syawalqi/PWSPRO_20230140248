@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   const token = localStorage.getItem("admin_token");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +20,8 @@ export default function Dashboard() {
       );
 
       setMessage("User created successfully");
+      setEmail("");
+      setPassword("");
     } catch {
       setMessage("Failed to create user");
     }
@@ -27,6 +29,21 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: 40 }}>
+      {/* 🔴 LOGOUT BUTTON */}
+      <button
+        onClick={onLogout}
+        style={{
+          float: "right",
+          background: "red",
+          color: "white",
+          border: "none",
+          padding: "8px 12px",
+          cursor: "pointer"
+        }}
+      >
+        Logout
+      </button>
+
       <h2>Admin Dashboard</h2>
 
       <h3>Create User</h3>
