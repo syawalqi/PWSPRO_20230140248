@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 
 import animalRoute from "./routes/animal.route.js";
+import authRoute from "./routes/auth.route.js";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
+app.use("/api/auth", authRoute);
 app.use("/api", animalRoute);
 
 const PORT = process.env.PORT || 4000;
