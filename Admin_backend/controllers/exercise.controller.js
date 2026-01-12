@@ -1,143 +1,76 @@
 import axios from "axios";
 
-const parseLifeSpan = (lifeSpan) => {
-  if (!lifeSpan) return null;
-  const nums = lifeSpan.match(/\d+/g)?.map(Number);
-  if (!nums || nums.length < 2) return null;
-  return {
-    min: nums[0],
-    max: nums[1],
-    average: Math.round((nums[0] + nums[1]) / 2)
-  };
-};
+/**
+ * Apply query filters
+ */
+const applyExerciseFilters = (exercises, query) => {
+  let result = exercises;
 
-const getSizeCategory = (weightMetric) => {
-  if (!weightMetric) return "unknown";
-  const nums = weightMetric.match(/\d+/g)?.map(Number);
-  if (!nums || nums.length < 2) return "unknown";
-  const avg = (nums[0] + nums[1]) / 2;
-  if (avg < 10) return "small";
-  if (avg < 25) return "medium";
-  return "large";
-};
-
-const applyDogFilters = (dogs, query) => {
-  let result = dogs;
-
-  if (query.size) {
-    result = result.filter(d => d.size_category === query.size);
+  if (query.equipment) {
+    result = result.filter(e =>
+      e.equipment.includes(query.equipment.toLowerCase())
+    );
   }
 
-  if (query.min_lifespan) {
-    const min = Number(query.min_lifespan);
-    result = result.filter(d => d.lifespan?.average >= min);
+  if (query.body_part) {
+    result = result.filter(e =>
+      e.body_parts.includes(query.body_part.toLowerCase())
+    );
+  }
+
+  if (query.muscle) {
+    result = result.filter(e =>
+      e.primary_muscles.includes(query.muscle.toLowerCase())
+    );
   }
 
   return result;
 };
 
-const applyCatFilters = (cats, query) => {
-  let result = cats;
-
-  if (query.origin) {
-    result = result.filter(
-      c => c.origin?.toLowerCase() === query.origin.toLowerCase()
-    );
-  }
-
-  if (query.min_lifespan) {
-    const min = Number(query.min_lifespan);
-    result = result.filter(c => c.lifespan?.average >= min);
-  }
-
-  return result;
-};
-
-
-export const getDogBreeds = async (req, res) => {
+export const getExercises = async (req, res) => {
   try {
-        const response = await axios.get(
-      "https://api.thedogapi.com/v1/images/search",
-      {
-        params: {
-          limit: 20,
-          has_breeds: 1
-        },
-        headers: {
-          "x-api-key": process.env.DOG_API_KEY
-        }
-      }
-    );
+    const limit = Number(req.query.limit) || 10;
+    const offset = Number(req.query.offset) || 0;
 
-    const processed = response.data.map(item => {
-      const breed = item.breeds[0];
-
-      return {
-        breed_id: breed.id,
-        breed_name: breed.name,
-        species: "dog",
-        lifespan: parseLifeSpan(breed.life_span),
-        temperament: breed.temperament
-          ? breed.temperament.split(",").map(t => t.trim())
-          : [],
-        size_category: getSizeCategory(breed.weight?.metric),
-        image: item.url,
-        source: "processed_vet_api"
-      };
-    });
-
-    const filtered = applyDogFilters(processed, req.query);
-
-    res.json({
-      count: filtered.length,
-      data: filtered
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch dog images" });
-  }
-};
-
-
-export const getCatBreeds = async (req, res) => {
-  try {
     const response = await axios.get(
-      "https://api.thecatapi.com/v1/images/search",
+      "https://www.exercisedb.dev/api/v1/exercises",
       {
-        params: {
-          limit: 20,
-          has_breeds: 1
-        },
-        headers: {
-          "x-api-key": process.env.CAT_API_KEY
-        }
+        params: { limit, offset }
       }
     );
 
-    const processed = response.data.map(item => {
-      const breed = item.breeds[0];
+    const processed = response.data.data.map(item => ({
+      exercise_id: item.exerciseId,
+      exercise_name: item.name,
+      equipment: item.equipments.map(e => e.toLowerCase()),
+      primary_muscles: item.targetMuscles.map(m => m.toLowerCase()),
+      secondary_muscles: item.secondaryMuscles.map(m => m.toLowerCase()),
+      body_parts: item.bodyParts.map(b => b.toLowerCase()),
+      media: {
+        type: "gif",
+        url: item.gifUrl
+      },
+      instructions: item.instructions,
+      source: "processed_fitness_api"
+    }));
 
-      return {
-        breed_id: breed.id,
-        breed_name: breed.name,
-        species: "cat",
-        lifespan: parseLifeSpan(breed.life_span),
-        temperament: breed.temperament
-          ? breed.temperament.split(",").map(t => t.trim())
-          : [],
-        origin: breed.origin || "unknown",
-        image: item.url,
-        source: "processed_vet_api"
-      };
-    });
-
-    const filtered = applyCatFilters(processed, req.query);
+    const filtered = applyExerciseFilters(processed, req.query);
 
     res.json({
-      count: filtered.length,
+      count: filtered.length,               // items returned now
+      total: response.data.metadata.totalExercises, // total dataset
+      pagination: {
+        limit,
+        offset,
+        current_page: response.data.metadata.currentPage,
+        total_pages: response.data.metadata.totalPages,
+        next_page: response.data.metadata.nextPage
+      },
       data: filtered
     });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch cat data" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch exercise data"
+    });
   }
 };
-
