@@ -1,22 +1,26 @@
 import { useState } from "react";
 
 export default function DeveloperApiPlayground({ apiKey, onBack }) {
-  const [endpoint, setEndpoint] = useState("/animals/dogs");
+  const [endpoint] = useState("/exercises");
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendRequest = async () => {
+  // pagination state
+  const [limit] = useState(10);
+  const [page, setPage] = useState(1);
+
+  const sendRequest = async (pageNumber = 1) => {
     setLoading(true);
     setError(null);
-    setResponse(null);
 
     try {
+      const offset = (pageNumber - 1) * limit;
+
       const url =
-        "http://localhost:3000/api" +
-        endpoint +
-        (query ? `?${query}` : "");
+        `http://localhost:3000/api${endpoint}?limit=${limit}&offset=${offset}` +
+        (query ? `&${query}` : "");
 
       const res = await fetch(url, {
         headers: {
@@ -26,6 +30,7 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
 
       const data = await res.json();
       setResponse(data);
+      setPage(pageNumber);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,34 +46,51 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
       <p>Test the public API using your API key.</p>
 
       <label>Endpoint</label>
-      <select
-        style={styles.input}
-        value={endpoint}
-        onChange={(e) => setEndpoint(e.target.value)}
-      >
-        <option value="/animals/dogs">/animals/dogs</option>
-        <option value="/animals/cats">/animals/cats</option>
+      <select style={styles.input} value={endpoint} disabled>
+        <option value="/exercises">/exercises</option>
       </select>
 
       <label>Query Parameters</label>
       <input
         style={styles.input}
-        placeholder="size=small&lifespan_min=10"
+        placeholder="equipment=dumbbell&muscle=glutes"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      <button style={styles.send} onClick={sendRequest}>
+      <button style={styles.send} onClick={() => sendRequest(1)}>
         {loading ? "Sending..." : "Send Request"}
       </button>
 
       {response && (
         <>
+          {/* PAGINATION */}
+          {response.pagination && (
+            <div style={styles.pagination}>
+              <button
+                onClick={() => sendRequest(page - 1)}
+                disabled={page <= 1}
+              >
+                ◀ Previous
+              </button>
+
+              <span>
+                Page {page} of {response.pagination.total_pages}
+              </span>
+
+              <button
+                onClick={() => sendRequest(page + 1)}
+                disabled={page >= response.pagination.total_pages}
+              >
+                Next ▶
+              </button>
+            </div>
+          )}
+
           <h3>Response</h3>
           <ResponseRenderer response={response} />
         </>
       )}
-
 
       {error && (
         <>
@@ -81,44 +103,30 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
 }
 
 function ResponseRenderer({ response }) {
-//// test gambar
   if (response?.data && Array.isArray(response.data)) {
     return (
       <div style={gridStyles.grid}>
         {response.data.map((item, index) => (
           <div key={index} style={gridStyles.card}>
-            {item.image && (
+            {item.media?.url && (
               <img
-                src={item.image}
-                alt={item.breed_name}
+                src={item.media.url}
+                alt={item.exercise_name}
                 style={gridStyles.image}
               />
             )}
 
-            <h4>{item.breed_name}</h4>
-            <p><b>Species:</b> {item.species}</p>
-            <p><b>Size:</b> {item.size_category}</p>
+            <h4>{item.exercise_name}</h4>
 
-            {item.lifespan && (
-              <p>
-                <b>Lifespan:</b> {item.lifespan.min}–{item.lifespan.max} yrs
-              </p>
-            )}
-
-            {item.temperament?.length > 0 && (
-              <p style={gridStyles.tags}>
-                {item.temperament.map((t, i) => (
-                  <span key={i} style={gridStyles.tag}>{t}</span>
-                ))}
-              </p>
-            )}
+            <p><b>Equipment:</b> {item.equipment.join(", ")}</p>
+            <p><b>Primary muscles:</b> {item.primary_muscles.join(", ")}</p>
+            <p><b>Body parts:</b> {item.body_parts.join(", ")}</p>
           </div>
         ))}
       </div>
     );
   }
 
-/// test json
   return (
     <pre style={styles.output}>
       {JSON.stringify(response, null, 2)}
@@ -126,6 +134,7 @@ function ResponseRenderer({ response }) {
   );
 }
 
+/* ===== STYLES ===== */
 
 const styles = {
   container: {
@@ -145,6 +154,12 @@ const styles = {
     border: "none",
     cursor: "pointer",
     marginBottom: 20,
+  },
+  pagination: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    margin: "20px 0",
   },
   output: {
     background: "#f4f4f4",
@@ -175,16 +190,5 @@ const gridStyles = {
     objectFit: "cover",
     borderRadius: 4,
     marginBottom: 10,
-  },
-  tags: {
-    marginTop: 8,
-  },
-  tag: {
-    display: "inline-block",
-    background: "#ecf0f1",
-    padding: "2px 6px",
-    margin: "2px",
-    borderRadius: 4,
-    fontSize: 12,
   },
 };

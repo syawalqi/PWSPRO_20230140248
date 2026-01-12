@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 
 export default function DeveloperDashboard({ onLogout, onDocs, onPlayground }) {
-
   const [apiKey, setApiKey] = useState(null);
   const [loading, setLoading] = useState(true);
 
-    const fetchApiKey = async () => {
+  const fetchApiKey = async () => {
     try {
       const res = await api.get("/developer/apikey");
       setApiKey(res.data.apiKey);
@@ -19,13 +18,11 @@ export default function DeveloperDashboard({ onLogout, onDocs, onPlayground }) {
     }
   };
 
-
-    const generateKey = async () => {
+  const generateKey = async () => {
     const res = await api.post("/developer/apikey");
     setApiKey(res.data.apiKey);
     localStorage.setItem("apiKey", res.data.apiKey);
   };
-
 
   useEffect(() => {
     fetchApiKey();
@@ -37,9 +34,12 @@ export default function DeveloperDashboard({ onLogout, onDocs, onPlayground }) {
     <div style={styles.container}>
       <header style={styles.header}>
         <h2>Developer Dashboard</h2>
-        <button onClick={onLogout} style={styles.logout}>Logout</button>
+        <button onClick={onLogout} style={styles.logout}>
+          Logout
+        </button>
       </header>
 
+      {/* API KEY */}
       <section style={styles.card}>
         <h3>Your API Key</h3>
 
@@ -60,10 +60,11 @@ export default function DeveloperDashboard({ onLogout, onDocs, onPlayground }) {
       <button onClick={onDocs}>View API Documentation</button>
       <button onClick={onPlayground}>Open API Playground</button>
 
+      {/* EXAMPLE REQUEST */}
       <section style={styles.card}>
         <h3>Example Request</h3>
         <pre style={styles.pre}>
-{`GET http://localhost:3000/api/animals/dogs
+{`GET http://localhost:3000/api/exercises?limit=10&offset=0
 Headers:
 x-api-key: YOUR_API_KEY`}
         </pre>
@@ -72,8 +73,7 @@ x-api-key: YOUR_API_KEY`}
   );
 }
 
-
-
+/* ===== STYLES ===== */
 
 const styles = {
   container: {

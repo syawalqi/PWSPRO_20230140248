@@ -11,8 +11,8 @@ export default function ApiDocs({ onBack }) {
 
         <NavItem label="Introduction" id="intro" active={active} setActive={setActive} />
         <NavItem label="Authentication" id="auth" active={active} setActive={setActive} />
-        <NavItem label="Dogs API" id="dogs" active={active} setActive={setActive} />
-        <NavItem label="Cats API" id="cats" active={active} setActive={setActive} />
+        <NavItem label="Exercises API" id="exercises" active={active} setActive={setActive} />
+        <NavItem label="Pagination" id="pagination" active={active} setActive={setActive} />
         <NavItem label="Errors" id="errors" active={active} setActive={setActive} />
 
         <button style={styles.backButton} onClick={onBack}>
@@ -24,8 +24,8 @@ export default function ApiDocs({ onBack }) {
       <main style={styles.content}>
         {active === "intro" && <Intro />}
         {active === "auth" && <Auth />}
-        {active === "dogs" && <Dogs />}
-        {active === "cats" && <Cats />}
+        {active === "exercises" && <Exercises />}
+        {active === "pagination" && <Pagination />}
         {active === "errors" && <Errors />}
       </main>
     </div>
@@ -54,8 +54,8 @@ function Intro() {
     <>
       <h2>Introduction</h2>
       <p>
-        This Open API provides animal breed data for veterinary and educational
-        purposes. All endpoints require an API key.
+        This Open API provides structured exercise and gym equipment data.
+        All endpoints are protected using an API key.
       </p>
       <p>
         Base URL:
@@ -86,52 +86,63 @@ function Auth() {
   );
 }
 
-function Dogs() {
+function Exercises() {
   return (
     <>
-      <h2>GET /animals/dogs</h2>
-      <p>Retrieve a list of dog breeds.</p>
+      <h2>GET /exercises</h2>
+      <p>Retrieve a paginated list of exercises.</p>
 
       <h4>Query Parameters</h4>
       <ul>
-        <li><b>size</b> — small | medium | large</li>
-        <li><b>lifespan_min</b> — minimum lifespan (years)</li>
+        <li><b>limit</b> — number of items per page (default: 10)</li>
+        <li><b>offset</b> — number of items to skip</li>
+        <li><b>equipment</b> — filter by equipment (e.g. dumbbell)</li>
+        <li><b>muscle</b> — filter by primary muscle (e.g. glutes)</li>
+        <li><b>body_part</b> — filter by body part (e.g. upper legs)</li>
       </ul>
 
       <h4>Example Request</h4>
       <pre style={styles.codeBlock}>
-{`GET /api/animals/dogs?size=small
+{`GET /api/exercises?limit=10&offset=0&equipment=dumbbell
 x-api-key: YOUR_API_KEY`}
       </pre>
 
       <h4>Example Response</h4>
       <pre style={styles.codeBlock}>
 {`{
-  "count": 1,
-  "data": [
-    {
-      "breed_name": "Shih Tzu",
-      "size_category": "small",
-      "lifespan": 14,
-      "image": "https://..."
-    }
-  ]
+  "count": 10,
+  "total": 319,
+  "pagination": {
+    "limit": 10,
+    "offset": 0,
+    "current_page": 1,
+    "total_pages": 32
+  },
+  "data": [ ... ]
 }`}
       </pre>
     </>
   );
 }
 
-function Cats() {
+function Pagination() {
   return (
     <>
-      <h2>GET /animals/cats</h2>
-      <p>Retrieve a list of cat breeds.</p>
+      <h2>Pagination</h2>
+      <p>
+        Pagination is handled using <b>limit</b> and <b>offset</b>.
+      </p>
 
-      <h4>Example Request</h4>
+      <ul>
+        <li><b>limit</b> — how many items to return</li>
+        <li><b>offset</b> — how many items to skip</li>
+      </ul>
+
+      <p>Example:</p>
       <pre style={styles.codeBlock}>
-{`GET /api/animals/cats
-x-api-key: YOUR_API_KEY`}
+{`Page 1 → limit=10&offset=0
+Page 2 → limit=10&offset=10
+Page 3 → limit=10&offset=20`}
       </pre>
     </>
   );
