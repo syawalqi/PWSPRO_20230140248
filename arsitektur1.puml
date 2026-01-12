@@ -1,39 +1,67 @@
 @startuml
-title Veterinary Open API Platform - System Architecture
+title Fitness Open API Platform - System Architecture
 
-actor Admin
-actor Developer
-actor "API Consumer\n(Clinic / App)" as Consumer
+skinparam componentStyle rectangle
+skinparam shadowing false
 
-cloud "Web Interface / API Gateway" as Interface {
-  component "Admin Dashboard\n(React)" as AdminUI
-  component "Developer Dashboard\n(React)" as DevUI
-  component "Public API\n(/animals/*)" as PublicAPI
+actor "API Consumer\n(Fitness App / Client)" as Consumer
+actor "Developer" as Developer
+actor "Admin" as Admin
+
+package "Web Interface / API Gateway" {
+  component "Public API\n(/api/exercises)" as PublicAPI
+  component "Developer Dashboard\n(React)" as DevDashboard
+  component "Admin Dashboard\n(React)" as AdminDashboard
 }
 
 component "Backend Server\n(Node.js + Express)" as Backend
 database "Database\n(MySQL)" as DB
 
-' ===== Admin Flow =====
-Admin --> AdminUI : Login / CRUD Developer\nManage API Keys
-AdminUI --> Backend : REST API (JWT Auth)
-Backend --> DB : CRUD Admin, Users, API Keys
-DB --> Backend
-Backend --> AdminUI : JSON Response
-
-' ===== Developer Flow =====
-Developer --> DevUI : Login / Generate API Key\nAPI Docs / Playground
-DevUI --> Backend : REST API (JWT Auth)
-Backend --> DB : Read Users / API Keys
-DB --> Backend
-Backend --> DevUI : JSON Response
-
-' ===== Public API Flow =====
+' =====================
+' API Consumer Flow
+' =====================
 Consumer --> PublicAPI : HTTP Request\nx-api-key
-PublicAPI --> Backend : Validate API Key\nFetch Vet Data
-Backend --> DB : Read Veterinary Data
-DB --> Backend
+PublicAPI --> Backend : Validate API Key\nFetch Exercise Data
 Backend --> PublicAPI : JSON Response
 PublicAPI --> Consumer : API Response
+
+' =====================
+' Developer Flow
+' =====================
+Developer --> DevDashboard : Login
+DevDashboard --> Backend : REST API (JWT Auth)
+Backend --> DevDashboard : JSON Response
+
+Developer --> DevDashboard : Generate / View API Key
+DevDashboard --> Backend : Create / Read API Key
+Backend --> DB : Store / Read API Keys
+DB --> Backend : API Key Data
+Backend --> DevDashboard : API Key JSON
+
+Developer --> DevDashboard : API Docs / Playground
+DevDashboard --> PublicAPI : Test API Requests
+
+' =====================
+' Admin Flow
+' =====================
+Admin --> AdminDashboard : Login
+AdminDashboard --> Backend : REST API (JWT Auth)
+Backend --> AdminDashboard : JSON Response
+
+Admin --> AdminDashboard : Manage Developers / Users
+AdminDashboard --> Backend : CRUD Developers / Users
+Backend --> DB : Read / Write User Data
+DB --> Backend : User Records
+
+Admin --> AdminDashboard : Manage API Keys
+AdminDashboard --> Backend : CRUD API Keys
+Backend --> DB : Read / Write API Keys
+DB --> Backend : API Key Records
+
+' =====================
+' Backend Data Access
+' =====================
+Backend --> DB : Read / Write\nUsers, API Keys, Metadata
+Backend --> DB : Store Logs / Usage Data
 
 @enduml

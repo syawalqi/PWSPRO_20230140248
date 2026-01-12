@@ -1,21 +1,28 @@
 @startuml
-title Veterinary Open API - Role & Endpoint Access
+title Fitness Open API - Role & Endpoint Access
 
-actor "API Consumer\n(Clinic / App)" as Consumer
+actor "API Consumer\n(Fitness App / Client)" as Consumer
 actor Developer
 actor Admin
 
-rectangle "Veterinary Open API" {
+rectangle "Fitness Open API Platform" {
 
-  Consumer --> (GET /api/animals/dogs)
-  Consumer --> (GET /api/animals/cats)
+  ' =====================
+  ' API Consumer Access
+  ' =====================
+  Consumer --> (GET /api/exercises)
 
-  Developer --> (GET /api/animals/dogs)
-  Developer --> (GET /api/animals/cats)
+  ' =====================
+  ' Developer Access
+  ' =====================
+  Developer --> (GET /api/exercises)
   Developer --> (GET /api/docs)
   Developer --> (API Playground)
   Developer --> (Generate API Key)
 
+  ' =====================
+  ' Admin Access
+  ' =====================
   Admin --> (GET /api/admin/developers)
   Admin --> (POST /api/users)
   Admin --> (DELETE /api/admin/developers/{id})
