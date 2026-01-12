@@ -1,8 +1,12 @@
 import axios from "axios";
 
 /**
- * Apply query filters
+ * Simple in-memory cache
+ * key: "limit:offset"
  */
+const cache = new Map();
+const CACHE_TTL = 60 * 1000; // 60 seconds
+
 const applyExerciseFilters = (exercises, query) => {
   let result = exercises;
 
@@ -28,18 +32,30 @@ const applyExerciseFilters = (exercises, query) => {
 };
 
 export const getExercises = async (req, res) => {
+  const limit = Math.min(Number(req.query.limit) || 10, 25);
+  const offset = Number(req.query.offset) || 0;
+  const cacheKey = `${limit}:${offset}`;
+
   try {
-    const limit = Number(req.query.limit) || 10;
-    const offset = Number(req.query.offset) || 0;
+    // 🧠 SERVE FROM CACHE
+    if (cache.has(cacheKey)) {
+      const cached = cache.get(cacheKey);
+
+      if (Date.now() - cached.timestamp < CACHE_TTL) {
+        return res.json(cached.data);
+      }
+
+      cache.delete(cacheKey);
+    }
 
     const response = await axios.get(
       "https://www.exercisedb.dev/api/v1/exercises",
-      {
-        params: { limit, offset }
-      }
+      { params: { limit, offset } }
     );
 
-    const processed = response.data.data.map(item => ({
+    const { metadata, data } = response.data;
+
+    const processed = data.map(item => ({
       exercise_id: item.exerciseId,
       exercise_name: item.name,
       equipment: item.equipments.map(e => e.toLowerCase()),
@@ -56,21 +72,39 @@ export const getExercises = async (req, res) => {
 
     const filtered = applyExerciseFilters(processed, req.query);
 
-    res.json({
-      count: filtered.length,               // items returned now
-      total: response.data.metadata.totalExercises, // total dataset
+    const result = {
+      count: filtered.length,
+      total: metadata.totalExercises,
       pagination: {
         limit,
         offset,
-        current_page: response.data.metadata.currentPage,
-        total_pages: response.data.metadata.totalPages,
-        next_page: response.data.metadata.nextPage
+        current_page: metadata.currentPage,
+        total_pages: metadata.totalPages,
+        next_page: metadata.nextPage
       },
       data: filtered
+    };
+
+    // 💾 STORE IN CACHE
+    cache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: result
     });
+
+    res.json(result);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch exercise data"
-    });
+    // 🚦 HANDLE RATE LIMIT GRACEFULLY
+    if (error.response?.status === 429) {
+      return res.status(429).json({
+        message: "Upstream API rate limit reached. Please wait a moment."
+      });
+    }
+
+    console.error("Exercise API error:", error.message);
+    res.status(500).json({ message: "Failed to fetch exercise data" });
   }
 };
+export const clearExerciseCache = (req, res) => {
+  cache.clear();
+  res.json({ message: "Exercise cache cleared" });
+}

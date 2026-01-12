@@ -80,9 +80,13 @@ export default function DeveloperApiPlayground({ apiKey, onBack }) {
 
               <button
                 onClick={() => sendRequest(page + 1)}
-                disabled={page >= response.pagination.total_pages}
+                disabled={
+                  loading ||                           
+                  !response?.pagination?.next_page ||
+                  page >= response?.pagination?.total_pages
+                }
               >
-                Next ▶
+                {loading ? "Loading..." : "Next ▶"}
               </button>
             </div>
           )}
